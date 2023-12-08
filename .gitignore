@@ -1,0 +1,4 @@
+#files we don't need in source
+*.bsp
+*.prt
+*.zip
