@@ -1,0 +1,245 @@
+//==========================================================================================================//
+// LEVEL: 			test_honour3														//
+// CAMPAIGN: 		Captains Orders										//			
+// TITLE:			"All Alone"											//
+// GEOMETRY/DESIGN: 	ADAM WATTS										//	
+// SCRIPTING:		ADAM WATTS										//		
+//==========================================================================================================//
+        exec global/loadout.scr maps/test_honour3.scr
+        
+main:
+
+//-------------------------------------------------------
+level waittill prespawn
+println "z:        prespawn marker"
+//-------------------------------------------------------
+
+
+	level.script = maps/test_honour3.scr
+        exec global/bomber.scr
+	exec global/cabinet.scr
+        exec global/ai.scr
+        exec global/exploder.scr
+
+
+	//	exec global/weather.scr 3500 (0.333 0.333 0.359)
+
+	//*** prep all the exploding stuff
+	//thread global/exploder.scr::main
+
+        level.flyplane = 1
+
+        $radio1_sound exec global/loopsound.scr m2l1_radio1
+	$radio2_sound exec global/loopsound.scr m2l1_radio3
+	$radio3_sound exec global/loopsound.scr m2l1_radio3
+
+	thread global/bomber.scr::main
+//	thread global/bomber.scr::repeat
+
+	exec global/ambient.scr m3l2
+	
+	thread global/door_locked.scr::lock
+
+	$bunker_hum exec global/loopsound.scr m3l2_electrical_hum
+
+//*** BIND PLAYERTARGET DEVICES FOR MG TRACKING
+
+$playertarget_center glue $player
+$playertarget_front1 bind $playertarget_center
+$playertarget_front2 bind $playertarget_center
+$playertarget_right1 bind $playertarget_center
+$playertarget_right2 bind $playertarget_center
+$playertarget_left1 bind $playertarget_center
+$playertarget_left2 bind $playertarget_center
+
+//*** SET FRIENDLY SCRIPT
+
+	thread global/friendly.scr::friendlygen
+
+
+//-------------------------------------------------------
+
+//*** SETUP THE FARPLANE
+
+// moved to world spawn
+
+//*** SET THE BACKGROUND AMBIENT SOUNDTRACK
+
+//	soundtrack music/m3l2.mus
+
+//-------------------------------------------------------
+
+	level waittill spawn
+println "z:        level waittill spawn marker"
+
+//-------------------------------------------------------
+
+         $mg42 thread global/mg42_active.scr::mg42
+
+	waitthread global/items.scr::add_item "binoculars"
+	waitthread global/items.scr::add_item "explosives"
+
+//*** START THE THREADS
+
+	thread scene1
+//*** RADIO SOUND THREAD
+
+	thread scene7_radio_sound
+	level.scene7_radio_thread = parm.previousthread
+
+	wait 1
+
+        $player stufftext "tmstop"
+	$player stufftext "tmstartloop sound/music/medicdance.mp3"
+	
+//*** SET OBJECTIVES
+
+	//*** TEMP reset the Objectives portion of the HUD
+//	waitthread global/objectives.scr::reset_objectives
+//	waitthread global/objectives.scr::blank_objectives
+
+	waitthread global/objectives.scr::add_objectives 1 2 "Chase The Sniper General." $general.origin
+//	waitthread global/objectives.scr::add_objectives 1 2 "Chase The Sniper General." $general.origin
+	thread global/objectives.scr::current_objectives 1
+end
+
+scene1:
+
+//*** DEACTIVATE THE FRIENDLY AIRBORNE AI
+        $general exec global/disable_ai.scr
+        $end1 exec global/disable_ai.scr
+        $end2 exec global/disable_ai.scr
+        $end3 exec global/disable_ai.scr
+        $end4 exec global/disable_ai.scr
+        $end5 exec global/disable_ai.scr
+        $end6 exec global/disable_ai.scr
+
+        $end1 nodamage
+        $end2 nodamage
+        $end3 nodamage
+        $end4 nodamage
+        $end5 nodamage
+        $end6 nodamage
+
+end
+
+scene1_general:
+
+        $general nodamage
+        $general runto $path1
+        $general waittill movedone
+
+thread scene2
+
+end
+
+scene2:
+ wait 1
+
+$general runto $path2
+
+thread scene3
+
+end
+
+scene3:
+
+$scene3_run waittill trigger
+
+wait 0.15
+
+$general runto $path6
+$general waittill movedone
+
+thread scene3_house
+
+end
+
+scene3_house:
+$scene3_house waittill trigger
+
+        //*** put the player into Stuck position and to the playerspot
+	$player glue $faketruck_playerspot 0
+	$player physics_off
+
+wait 1
+
+$general runto $generalend
+wait 2
+$end1 runto $end1_pathnode
+$end2 runto $end2_pathnode
+$end3 runto $end3_pathnode
+$end4 runto $end4_pathnode
+$end5 runto $end5_pathnode
+$end6 runto $end6_pathnode
+
+
+wait 14
+
+$general turnto $player
+$end1 turnto $player
+$end2 turnto $player
+$end3 turnto $player
+$end4 turnto $player
+$end5 turnto $player
+$end6 turnto $player
+
+wait 3
+
+$general lookat $player
+$end1 lookat $player
+$end2 lookat $player
+$end3 lookat $player
+$end4 lookat $player
+$end5 lookat $player
+$end6 lookat $player
+
+wait 1
+
+$general aimat $player
+$end1 aimat $player
+$end2 aimat $player
+$end3 aimat $player
+$end4 aimat $player
+$end5 aimat $player
+$end6 aimat $player
+
+wait 1
+
+        waitthread global/objectives.scr::add_objectives 1 3 "Chase The General" $general.origin
+
+//*** fade the screen out
+fadeout 3 0 0 0 1
+
+wait 2
+
+//*** stop the existing music
+$player stufftext "tmstop"
+forcemusic aux2 aux2
+
+//*** show 'THE END'
+showmenu credits1
+hidemouse
+
+wait 2
+
+//*** hide 'THE END'
+hidemenu credits1
+	
+//*** when the player wins the game, play the the deisred credits music
+//$player playsound credits2
+wait 2
+
+exec global/missioncomplete.scr test_honour3
+
+end
+
+charge1: 
+
+   thread global/ai.scr::spawn 11 
+   end
+
+charge2: 
+
+   thread global/ai.scr::spawn 12
+   end
